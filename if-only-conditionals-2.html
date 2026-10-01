@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>if only: условные предложения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Golos+Text:wght@400;500;600;700&family=Permanent+Marker&family=Rubik+Wet+Paint&display=swap" rel="stylesheet">
+<style>
+/* эмо 2000-х: чёрный, ярко-розовый, шахматка как на кедах, сетлист на скотче */
+:root{
+  color-scheme:dark;
+  --paper:#0C0A0E;--sheet:#17141B;--sheet2:#211D27;--ink:#F4F1F6;--muted:#A9A1B3;--line:#3A3442;--edge:#5A5363;
+  --pink:#FF2E88;--pink-ink:#0C0A0E;
+  --z:#8FB2D9;--f:#7FA0FF;--s:#FF5CA8;--t:#B98CFF;--m:#FF9A57;--w:#4FD8C0;
+  --ok:#9BF06A;--bad:#FF5468;--hl:rgba(255,46,136,.55);
+  --sl-paper:#F3F0EA;--sl-ink:#121014;--sl-muted:#5A5560;--sl-pink:#D3105F;
+  --tape:#18161B;--tape-ink:#F3F0EA;
+  --hand:"Caveat","Segoe Print","Bradley Hand",cursive;
+  --marker:"Permanent Marker","Caveat",cursive;
+  --drip:"Rubik Wet Paint","Permanent Marker",cursive;
+  --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--paper)}
+body{margin:0;color:var(--ink);font:400 16px/1.55 var(--ui);-webkit-font-smoothing:antialiased;
+  background:radial-gradient(120% 50% at 50% -8%,rgba(255,46,136,.20),transparent 62%),var(--paper);min-height:100vh}
+.checker{height:14px;background:repeating-conic-gradient(var(--sl-paper) 0 25%,var(--paper) 0 50%) 0 0/14px 14px}
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 40px;overflow-x:clip}
+.k-z{--c:var(--z)} .k-f{--c:var(--f)} .k-s{--c:var(--s)} .k-t{--c:var(--t)} .k-m{--c:var(--m)} .k-w{--c:var(--w)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+::selection{background:var(--pink);color:var(--pink-ink)}
+
+/* сетлист: рваная бумага на скотче и булавке */
+.setlist{position:relative;isolation:isolate;color:var(--sl-ink);max-width:560px;margin:30px auto 10px;padding:28px 22px 30px;transform:rotate(-1.2deg);
+  filter:drop-shadow(0 12px 16px rgba(0,0,0,.65))}
+.setlist::before{content:"";position:absolute;inset:0;z-index:-1;background:
+  repeating-linear-gradient(transparent 0 31px,rgba(18,16,20,.06) 31px 32px),var(--sl-paper);
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 9px repeat-x;
+          mask:linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 9px repeat-x}
+.tape{position:absolute;top:-12px;left:14px;width:92px;height:26px;background:var(--tape);opacity:.95;transform:rotate(-7deg);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.pin{position:absolute;top:-16px;right:18px;width:74px;height:30px;transform:rotate(18deg)}
+.band{font:400 clamp(3.2rem,15vw,5rem)/.9 var(--drip);margin:0;color:var(--sl-pink);letter-spacing:.01em}
+.venue{font:600 .95rem/1.4 var(--ui);color:var(--sl-muted);margin:8px 0 14px}
+.venue .tour{display:inline-block;font:400 .95rem/1 var(--marker);color:var(--sl-ink);margin-right:6px}
+.songs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,auto);grid-auto-flow:column;gap:2px 14px}
+.song{position:relative;font:700 clamp(1.3rem,5.6vw,1.65rem)/1.15 var(--hand);background:none;border:0;color:inherit;padding:3px 6px 3px 2px;cursor:pointer;text-align:left;display:inline-flex;gap:6px;align-items:baseline}
+.song .n{opacity:.5;min-width:1.1em;flex:none}
+.song.cur{background:linear-gradient(transparent 50%,var(--hl) 50%,var(--hl) 92%,transparent 92%)}
+.song.done::after{content:"";position:absolute;left:1.4em;right:2px;top:52%;height:3px;border-radius:2px;background:currentColor;opacity:.8;transform:rotate(-2deg)}
+.song:focus-visible{outline:2px solid var(--sl-ink);outline-offset:2px}
+.saverow{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 10px;font-size:.85rem;color:var(--muted);margin:6px 0 0;text-align:center}
+.linkbtn{font:inherit;background:none;border:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0}
+.linkbtn:hover{color:var(--pink)}
+
+/* карточки */
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:2px;padding:20px 18px;margin-top:18px;box-shadow:5px 5px 0 #000}
+h2{font:700 1.3rem/1.25 var(--ui);margin:0 0 10px;letter-spacing:-.01em}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font:700 .72rem/1.4 var(--ui);padding:1px 8px;border-radius:2px;background:var(--sheet2);color:var(--muted);border:1px solid var(--edge);vertical-align:middle;margin-left:6px;letter-spacing:.03em}
+.tag.c1{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tag.again{background:var(--pink);color:var(--pink-ink);border-color:var(--pink)}
+
+/* сетка «два вопроса» */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 12px}
+.gh{font:600 .85rem/1.3 var(--ui);color:var(--muted);padding:0 2px;align-self:end}
+.gr{grid-column:1/-1;font:700 1.45rem/1 var(--hand);margin-top:8px;padding-left:2px;color:var(--pink)}
+.cell{padding:12px;border-radius:2px;border:1.5px solid color-mix(in srgb,var(--c) 55%,transparent);background:var(--sheet2);background:color-mix(in srgb,var(--c) 12%,var(--sheet));min-width:0}
+.cell .cn{font:700 1.6rem/1 var(--hand);color:var(--c);margin:0 0 2px}
+.cell .cd{font-size:.88rem;color:var(--muted);margin:0 0 8px}
+.cell.dim{--c:var(--muted);border-style:dashed}
+.rule{border-left:4px solid var(--pink);padding:4px 0 4px 12px;margin:12px 0 0}
+
+/* карточки типов */
+.tcard{border-left:6px solid var(--c)}
+.tname{font:400 2.2rem/1.05 var(--marker);color:var(--c);margin:0 0 8px}
+.when{margin:0 0 10px}
+.formula{display:inline-block;margin:0 8px 8px 0;background:var(--sl-paper);color:var(--sl-ink);font:700 .9rem/1.35 var(--ui);padding:5px 12px;transform:rotate(-.6deg);box-shadow:2px 2px 0 #000}
+.formula:nth-of-type(even){transform:rotate(.5deg)}
+.exs{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:4px 0 8px}
+.say{display:inline-flex;align-items:baseline;gap:8px;font:500 .97rem/1.4 var(--ui);background:var(--sheet2);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:6px 10px;cursor:pointer;text-align:left;max-width:100%}
+.say:hover{border-color:var(--pink)}
+.say b{color:var(--c,var(--pink));font-weight:700}
+.say .spk{flex:none;color:var(--muted);position:relative;top:1px}
+.note{font-size:.93rem;color:var(--muted);margin:8px 0 0}
+.note b{color:var(--ink)}
+
+.trap .ru{font:600 1.15rem/1.4 var(--ui);margin:0 0 10px}
+.trow{display:grid;grid-template-columns:minmax(0,11em) 1fr;gap:4px 14px;align-items:baseline;padding:8px 0;border-top:1px solid var(--line)}
+.trow .lab{font:700 1.35rem/1.1 var(--hand)}
+.brow{display:grid;grid-template-columns:minmax(0,11em) 1fr;gap:4px 14px;padding:10px 0;border-top:1px solid var(--line)}
+.brow .w{font-weight:700}
+.brow .m{color:var(--muted);font-size:.9rem}
+.brow .exs{margin:0}
+.drow{display:grid;grid-template-columns:minmax(0,12em) 1fr;gap:2px 14px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline}
+.drow .pair{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.drow .x{color:var(--bad);text-decoration:line-through}
+.drow .v{color:var(--ok);font-weight:600}
+@media (max-width:519px){.trow,.brow,.drow{grid-template-columns:1fr}}
+
+/* кнопки */
+.btn{font:700 .95rem var(--ui);letter-spacing:.04em;text-transform:uppercase;background:var(--pink);color:var(--pink-ink);border:0;border-radius:2px;padding:.78em 1.2em;cursor:pointer;box-shadow:3px 3px 0 #000}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.ghost:hover{color:var(--pink);box-shadow:inset 0 0 0 1.5px var(--pink)}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+
+/* упражнения */
+.meta{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:.88rem;margin-bottom:8px}
+.meta>span:last-child{white-space:nowrap}
+.bar{height:6px;background:var(--line);border-radius:0;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--pink) 0 8px,#ff6aa9 8px 16px);transition:width .25s}
+.sent{font:500 clamp(1.2rem,4.4vw,1.5rem)/1.55 var(--ui);margin:4px 0 16px}
+.gap{display:inline-block;min-width:3.4em;border-bottom:3px solid var(--pink);text-align:center;padding:0 .25em;font-weight:700}
+.gap.got{color:var(--ok);border-color:var(--ok)}
+.gap.rev{color:var(--bad);border-color:var(--bad)}
+.vh{color:var(--muted);font-size:.82em;margin:0 .15em}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:479px){.opts{grid-template-columns:1fr}}
+.opt{font:600 1.05rem var(--ui);padding:13px 12px;border-radius:2px;border:1.5px solid var(--edge);background:var(--sheet2);color:var(--ink);cursor:pointer;text-align:center}
+.opt:hover:not([disabled]){border-color:var(--pink)}
+.opt[disabled]{opacity:.35;cursor:default;text-decoration:line-through}
+.opt.hit{opacity:1;text-decoration:none;border-color:var(--ok);color:var(--ok)}
+.nopts{display:flex;flex-direction:column;gap:10px}
+.nopt{text-align:left;font-weight:500;line-height:1.4}
+.now-ctx{font-weight:600;color:var(--ink);border-left:4px solid var(--pink);padding:4px 0 4px 10px}
+.buckets{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bucket{text-align:left;border-radius:2px;border:2px solid var(--c);background:var(--sheet2);background:color-mix(in srgb,var(--c) 11%,var(--sheet));padding:10px 12px;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:4px;min-height:74px}
+.bucket .bn{font:400 1.35rem/1.05 var(--marker);color:var(--c)}
+.bucket .bf{font-size:.82rem;line-height:1.3;color:var(--muted)}
+.bucket[disabled]{opacity:.3;cursor:default}
+.bucket.hit{opacity:1;box-shadow:inset 0 0 0 2px var(--c),3px 3px 0 #000}
+.fb{margin-top:14px;padding:10px 14px;border-radius:2px;background:var(--sheet2);border-left:4px solid var(--line)}
+.fb.ok{border-left-color:var(--ok)} .fb.bad{border-left-color:var(--bad)}
+.fb b.ok{color:var(--ok)} .fb b.bad{color:var(--bad)}
+.fb .full{display:block;margin-top:6px;font-weight:600}
+.speak{font:600 .9rem var(--ui);background:none;border:0;color:var(--ink);cursor:pointer;padding:6px 0 0;text-decoration:underline;text-decoration-color:var(--pink);text-underline-offset:3px}
+.typerow{display:flex;gap:10px;flex-wrap:wrap}
+.typerow input{flex:1 1 180px;min-width:0;font:600 1.15rem var(--ui);padding:10px 12px;border-radius:2px;border:1.5px solid var(--edge);background:var(--sheet2);color:var(--ink)}
+.toks{font:500 clamp(1.2rem,4.4vw,1.5rem)/1.9 var(--ui);margin:4px 0 14px}
+.tok{font:inherit;background:none;border:0;color:var(--ink);padding:0 .12em;border-radius:2px;cursor:pointer}
+.tok:hover{background:var(--sheet2)}
+.tok.plain{cursor:default;padding:0}
+.tok.hl{outline:2px dashed var(--bad);outline-offset:2px}
+.tok.sel{background:var(--pink);color:var(--pink-ink)}
+.tok.fixed{color:var(--ok);font-weight:700}
+.tok.gone{color:var(--bad);text-decoration:line-through}
+.nope{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.nope{animation:none}.bar i{transition:none}}
+.ru-src{font:600 clamp(1.2rem,4.8vw,1.55rem)/1.35 var(--ui);margin:4px 0 4px}
+.ctx{color:var(--muted);font-size:.92rem;margin:0 0 12px}
+.ansline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:52px;padding:6px 0 8px;border-bottom:2px solid var(--pink);margin:10px 0 14px}
+.ansline .ph{color:var(--muted);font-size:.95rem}
+.ansline.solved{font:700 clamp(1.1rem,4.4vw,1.4rem) var(--ui);color:var(--ok);border-color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 1rem var(--ui);padding:7px 12px;border-radius:2px;border:1.5px solid var(--edge);background:var(--sheet2);color:var(--ink);cursor:pointer}
+.chip:hover{border-color:var(--pink)}
+.ansline .chip{border-color:var(--pink)}
+.hint{display:block;margin-top:6px;color:var(--muted);font-size:.92rem}
+.big{font:400 3.8rem/1 var(--marker);margin:4px 0;color:var(--pink);transform:rotate(-2deg);display:inline-block}
+.verdict{font:700 1.6rem/1.1 var(--hand);color:var(--ink);margin:0 0 8px}
+.miss-h{margin-top:18px}
+.miss{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%}
+.miss-n{font-size:.82rem;color:var(--muted)}
+.free-big{font-size:clamp(1.1rem,4vw,1.3rem)}
+#free{width:100%;font:500 1.05rem/1.5 var(--ui);padding:10px 12px;border-radius:2px;border:1.5px solid var(--edge);background:var(--sheet2);color:var(--ink);resize:vertical;min-height:84px}
+.free-tip{border-left:4px solid var(--pink);padding-left:10px}
+.lint{margin:6px 0 0;padding-left:20px}
+.free-row{border-top:1px solid var(--line);padding:8px 0}
+.free-q{font-weight:600;margin:0 0 4px}
+
+/* подвал */
+.foot{text-align:center;padding:18px 16px 26px;color:var(--muted)}
+.foot p{font:400 1.05rem/1.3 var(--marker);margin:0;transform:rotate(-1deg)}
+.foot .heart{color:var(--pink)}
+@media (max-width:380px){.setlist{padding:26px 16px 28px}.songs{gap:2px 8px}}
+</style>
+</head>
+<body>
+<div class="checker" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <nav class="setlist" aria-label="Этапы">
+      <span class="tape" aria-hidden="true"></span><svg class="pin" viewBox="0 0 74 30" aria-hidden="true"><path d="M6 15 C6 8 14 5 22 8 L66 12 C71 12.5 71 17.5 66 18 L22 22 C14 25 6 22 6 15 Z" fill="none" stroke="#B9B6BF" stroke-width="2.4"/><path d="M14 15 L64 15" stroke="#D9D6DE" stroke-width="2.4" stroke-linecap="round"/><circle cx="10" cy="15" r="4.2" fill="#FF2E88"/></svg>
+      <h1 class="band">if only</h1>
+      <p class="venue"><span class="tour">conditionals tour</span> всё, что было бы, если бы</p>
+      <ol class="songs" id="nav"></ol>
+    </nav>
+    <p class="saverow"><span>Прогресс сохраняется в этом браузере.</span><button class="linkbtn" data-wipe="1">Сбросить всё</button></p>
+  </header>
+  <main id="stage"></main>
+  <div id="live" class="sr" aria-live="polite"></div>
+</div>
+<footer class="foot"><div class="checker" aria-hidden="true" style="margin:0 -16px 16px"></div><p lang="en">if only grammar were this easy <span class="heart" aria-hidden="true">&#9829;</span></p></footer>
+<script>
+const STAGES=["Узнать","Разложить","Сейчас или тогда","Выбрать","Вписать","Найти ошибку","Перевести","Сказать самой"];
+const TY={
+  z:{name:"Zero",f:"if + present, present"},
+  f:{name:"First",f:"if + present, will"},
+  s:{name:"Second",f:"if + past, would"},
+  t:{name:"Third",f:"if + had V3, would have V3"},
+  m:{name:"Mixed",f:"время в частях разное"},
+  w:{name:"Wish / if only",f:"сожаление без if"}
+};
+const BK=["z","f","s","t","m","w"];
+
+const SORT=[
+  {s:"If I play The Black Parade too loud, my neighbours bang on the wall.",a:"z",why:"Так бывает каждый раз: present и present.",h:"Это случается каждый раз или один раз в будущем?"},
+  {s:"If you wear cheap eyeliner in the rain, it runs.",a:"z",why:"Факт, так всегда — zero.",h:"Это одна ситуация или так бывает всегда?"},
+  {s:"If I drink coffee after six, I can't sleep.",a:"z",why:"Так бывает всегда — zero. Can't тут как обычный present.",h:"Посмотри на время в обеих частях."},
+  {s:"If they play Welcome to the Black Parade tonight, I'll scream.",a:"f",why:"Реально может случиться сегодня: present и will.",h:"Это может случиться — и в главной части есть will."},
+  {s:"If you don't hurry, we'll miss the opening band.",a:"f",why:"Реальная угроза в будущем — first.",h:"Это реальная ситуация в будущем?"},
+  {s:"If the merch stand still has my size, I'll buy the hoodie.",a:"f",why:"Может быть, а может нет — first.",h:"Размер может остаться — это возможно или воображаемо?"},
+  {s:"If I had a record player, I would buy Riot! on vinyl.",a:"s",why:"Проигрывателя нет — воображаемое сейчас: past и would.",h:"Проигрыватель есть? Это про сейчас или про прошлое?"},
+  {s:"If I were you, I'd stop texting him.",a:"s",why:"«На твоём месте» — воображаемое сейчас: were и would.",h:"Ты не можешь быть другим человеком. Это про сейчас."},
+  {s:"If we lived in London, we would go to emo nights every week.",a:"s",why:"Мы не живём в Лондоне — воображаемое сейчас.",h:"Lived — прошедшая форма. Но речь правда о прошлом?"},
+  {s:"If I had left earlier, I wouldn't have missed the first song.",a:"t",why:"Уже не изменить — воображаемое прошлое: had + V3 и would have + V3.",h:"Первая песня уже прозвучала. Это про прошлое?"},
+  {s:"If she hadn't called, I would have forgotten about the exam.",a:"t",why:"Воображаемое прошлое — third.",h:"Посмотри на had и would have."},
+  {s:"If we had bought tickets in May, we could have seen them live.",a:"t",why:"Could have — вариант would have, «смогли бы». Всё в прошлом — third.",h:"Could have — то же, что would have, только «смогли бы»."},
+  {s:"If I hadn't heard Helena at fourteen, I wouldn't be an emo kid now.",a:"m",why:"Песню услышала в прошлом (had + V3), а результат — сейчас, now (would + V): mixed.",h:"Условие в прошлом. А результат тоже в прошлом?"},
+  {s:"If I had chosen music instead of law, I'd be broke but happy now.",a:"m",why:"Выбор в прошлом, а now — сейчас: mixed.",h:"Посмотри на слово now в конце."},
+  {s:"If I weren't so shy, I would have talked to the singer after the show.",a:"m",why:"Застенчивость — черта сейчас, а разговор — в прошлом: mixed.",h:"Weren't — про сейчас. А would have talked — про когда?"},
+  {s:"I wish I had tickets for tonight.",a:"w",why:"Сожаление о настоящем: wish + past.",h:"Здесь нет if."},
+  {s:"I wish I hadn't cut my own fringe.",a:"w",why:"Сожаление о прошлом: wish + had + V3. Fringe — чёлка (в американском bangs).",h:"Здесь нет if — есть другое слово сожаления."},
+  {s:"If only you would stop checking your phone during the show.",a:"w",why:"If only — то же, что wish. Would — раздражение из-за чужого поведения.",h:"If only — это не обычное if."}
+];
+
+const CHOICE=[
+  {s:"If it ___ during the open-air show, my eyeliner will run.",o:["rains","will rain","rained","would rain"],a:"rains",why:"После if будущее не ставим: if + present.",h:"По-русски «если пойдёт» — будущее. А в английском после if?",l:1},
+  {s:"If I ___ you, I'd delete his number.",o:["were","am","would be","had been"],a:"were",why:"If I were you — «на твоём месте», second.",h:"Это воображаемое сейчас: шаг назад во времени.",l:1},
+  {s:"If I had known about the secret show, I ___.",o:["would have gone","would go","will go","went"],a:"would have gone",why:"Прошлое, которое не изменить: would have + V3.",h:"Условие — had known, это прошлое. Какой результат к нему?",l:1},
+  {s:"If you ___ a black hoodie in hot water, it fades.",o:["wash","will wash","washed","would wash"],a:"wash",why:"Факт, так всегда — zero: present и present.",h:"Посмотри на вторую часть: fades. Это правило.",l:1},
+  {s:"If we ___ more money, we'd fly to every My Chemical Romance show.",o:["had","have","would have","had had"],a:"had",why:"Воображаемое сейчас: past simple и would.",h:"We'd fly — это would. Какая форма в if-части?",l:1},
+  {s:"I'll text you when I ___ to the venue.",o:["get","will get","got","would get"],a:"get",why:"После when, как после if, будущее не ставим.",h:"When ведёт себя как if.",l:1},
+  {s:"If he had studied harder, he ___ the exam last week.",o:["would have passed","would pass","will pass","passed"],a:"would have passed",why:"Last week — прошлое: would have + V3.",h:"Посмотри на last week.",l:1},
+  {s:"___ you hurry, you'll miss the opening band.",o:["Unless","If","In case","Even"],a:"Unless",why:"Unless = if not: «если не поторопишься».",h:"Смысл: «если не поторопишься». Какое слово так и значит?",l:2},
+  {s:"Take a hoodie ___ it gets cold after the show.",o:["in case","if","unless","provided"],a:"in case",why:"In case — заранее, на всякий случай.",h:"Худи берут сейчас — на всякий случай.",l:2},
+  {s:"I wish I ___ the bass in a real band.",o:["could play","can play","will play","would play"],a:"could play",why:"Wish + could — сожаление о том, что не умеешь.",h:"После wish — шаг назад во времени: can → ?",l:2},
+  {s:"I wish I ___ to that afterparty last night.",o:["hadn't gone","didn't go","wouldn't go","haven't gone"],a:"hadn't gone",why:"Сожаление о прошлом: wish + had + V3.",h:"Last night — прошлое. После wish шаг назад: had + V3.",l:2},
+  {s:"If I had joined that band at school, I ___ on tour now.",o:["would be touring","would have toured","will tour","toured"],a:"would be touring",why:"Mixed: решение в прошлом, результат сейчас (now) — would + V.",h:"Посмотри на now в конце.",l:2},
+  {s:"You can borrow my Fall Out Boy vinyl ___ you give it back on Friday.",o:["as long as","unless","in case","even if"],a:"as long as",why:"As long as — «при условии, что».",h:"Смысл: «бери, при условии, что вернёшь».",l:2},
+  {s:"I wish you ___ skipping my songs.",o:["would stop","will stop","are stopping","stop"],a:"would stop",why:"Wish + would — о чужом поведении, которое раздражает.",h:"Тебя раздражает чужое поведение.",l:2},
+  {s:"If I won the lottery, I ___ start a band, but I'm not sure.",o:["might","will","would have","am going to"],a:"might",why:"Might вместо would — «может быть, но не уверена».",h:"Посмотри на «I'm not sure».",l:2},
+  {s:"___ you have any questions about your tickets, please contact the venue.",o:["Should","Would","Will","Had"],a:"Should",why:"Should you… = If you… — так пишут в официальных письмах.",h:"Официальное письмо. Какое слово начинает такое условие?",l:3},
+  {s:"___ I known about the reunion earlier, I would have bought tickets.",o:["Had","If","Would","Should"],a:"Had",why:"Had I known = If I had known — инверсия в третьем типе.",h:"После пропуска сразу I known. Чего не хватает до had known?",l:3}
+];
+
+/* «Сейчас или тогда?»: русская фраза с «бы» + контекст → английский вариант.
+   Коды вариантов: s — условие сейчас, результат сейчас; t — тогда/тогда; mp — тогда → сейчас; mn — сейчас → тогда; остальные — ошибки. */
+const MEAN={
+  s:"Этот вариант значит: условие сейчас и результат сейчас (second).",
+  t:"Этот вариант значит: условие тогда и результат тогда (third).",
+  mp:"Этот вариант значит: условие тогда, а результат сейчас (mixed).",
+  mn:"Этот вариант значит: условие сейчас — черта или состояние, а результат тогда (mixed).",
+  wn:"Этот вариант — сожаление о том, что сейчас.",
+  wp:"Этот вариант — сожаление о том, что уже случилось.",
+  ww:"Would после if only — о чужом действии, которого ждёшь. Здесь ждать уже нечего.",
+  wouldIf:"Would в части с if не ставим — даже после if only.",
+  willIf:"Will после if only не ставим.",
+  pres:"Без шага назад во времени это уже не сожаление.",
+  perf:"Present perfect тут не работает: нужен шаг назад во времени."
+};
+const NOW=[
+  {ru:"Если бы у меня были билеты, я бы пошла на концерт My Chemical Romance.",ctx:"Концерт сегодня вечером. Билетов у меня нет.",
+   o:[["If I had tickets, I would go to the My Chemical Romance show.","s"],["If I had had tickets, I would have gone to the My Chemical Romance show.","t"],["If I had had tickets, I would go to the My Chemical Romance show.","mp"],["If I had tickets, I would have gone to the My Chemical Romance show.","mn"]],
+   a:"s",why:"Условие сейчас, результат сейчас — second: past simple и would + V.",h:"Билетов нет сейчас, концерт ещё впереди. Всё про сейчас.",l:1},
+  {ru:"Если бы у меня были билеты, я бы пошла на концерт My Chemical Romance.",ctx:"Концерт был в прошлую субботу. Билетов тогда не было.",
+   o:[["If I had tickets, I would go to the My Chemical Romance show.","s"],["If I had had tickets, I would have gone to the My Chemical Romance show.","t"],["If I had had tickets, I would go to the My Chemical Romance show.","mp"],["If I had tickets, I would have gone to the My Chemical Romance show.","mn"]],
+   a:"t",why:"Условие тогда, результат тогда — third: had + V3 и would have + V3. От have это had had.",h:"Суббота прошла. И билетов не было тогда, и концерт был тогда.",l:1},
+  {ru:"Если бы я не была такой стеснительной, я бы заговорила с вокалистом.",ctx:"Концерт идёт прямо сейчас, вокалист стоит у бара.",
+   o:[["If I weren't so shy, I would talk to the singer.","s"],["If I hadn't been so shy, I would have talked to the singer.","t"],["If I weren't so shy, I would have talked to the singer.","mn"],["If I hadn't been so shy, I would talk to the singer.","mp"]],
+   a:"s",why:"Стеснительная сейчас, заговорить можно сейчас — second.",h:"Вокалист рядом прямо сейчас. Всё про сейчас.",l:1},
+  {ru:"Если бы я не была такой стеснительной, я бы заговорила с вокалистом.",ctx:"Это было на концерте в прошлом году. Стеснительная я и тогда, и сейчас.",
+   o:[["If I weren't so shy, I would talk to the singer.","s"],["If I hadn't been so shy, I would have talked to the singer.","t"],["If I weren't so shy, I would have talked to the singer.","mn"],["If I hadn't been so shy, I would talk to the singer.","mp"]],
+   a:"mn",why:"Стеснительность — черта сейчас (weren't), а разговор не случился тогда (would have talked) — mixed.",h:"Стеснительная до сих пор. А разговор — когда?",l:2},
+  {ru:"Если бы я не была такой стеснительной, я бы заговорила с вокалистом.",ctx:"Вспоминаю концерт в девятом классе. Тогда я была стеснительной, теперь уже нет.",
+   o:[["If I weren't so shy, I would talk to the singer.","s"],["If I hadn't been so shy, I would have talked to the singer.","t"],["If I weren't so shy, I would have talked to the singer.","mn"],["If I hadn't been so shy, I would talk to the singer.","mp"]],
+   a:"t",why:"Стеснительной была тогда, разговор не случился тогда — third.",h:"Сейчас ты уже не стеснительная. Значит, и условие, и результат — в прошлом.",l:2},
+  {ru:"Если бы я не пошла на юрфак, я бы играла в группе.",ctx:"Про сейчас: я учусь на юриста, а в группе не играю.",
+   o:[["If I didn't go to law school, I would play in a band.","s"],["If I hadn't gone to law school, I would have played in a band.","t"],["If I hadn't gone to law school, I would play in a band.","mp"],["If I didn't go to law school, I would have played in a band.","mn"]],
+   a:"mp",why:"Поступила тогда (hadn't gone), а результат сейчас (would play) — mixed.",h:"Поступление — когда? А «играла бы» — когда?",l:2},
+  {ru:"Если бы я не пошла на юрфак, я бы играла в группе.",ctx:"Про бакалавриат: все четыре года на группу не было времени.",
+   o:[["If I didn't go to law school, I would play in a band.","s"],["If I hadn't gone to law school, I would have played in a band.","t"],["If I hadn't gone to law school, I would play in a band.","mp"],["If I didn't go to law school, I would have played in a band.","mn"]],
+   a:"t",why:"И поступление, и те четыре года — в прошлом. Third.",h:"Бакалавриат закончился. «Играла бы» — тогда или сейчас?",l:2},
+  {ru:"Если бы я знала, что они приедут, я бы купила билеты.",ctx:"Тур объявили, но про наш город пока ничего не известно.",
+   o:[["If I knew they were coming, I would buy tickets.","s"],["If I had known they were coming, I would have bought tickets.","t"],["If I had known they were coming, I would buy tickets.","mp"],["If I knew they were coming, I would have bought tickets.","mn"]],
+   a:"s",why:"Не знаю сейчас, купить можно сейчас — second.",h:"Билеты ещё можно купить. Это про сейчас.",l:1},
+  {ru:"Если бы я знала, что они приедут, я бы купила билеты.",ctx:"Они выступили в прошлом месяце. Я узнала только потом.",
+   o:[["If I knew they were coming, I would buy tickets.","s"],["If I had known they were coming, I would have bought tickets.","t"],["If I had known they were coming, I would buy tickets.","mp"],["If I knew they were coming, I would have bought tickets.","mn"]],
+   a:"t",why:"Не знала тогда, не купила тогда — third.",h:"Концерт уже был. Изменить ничего нельзя.",l:1},
+  {ru:"Если бы я не потратила все деньги на мерч, я бы купила нормальный кофе.",ctx:"Деньги потратила вчера. Сейчас стою в кофейне и смотрю в меню.",
+   o:[["If I didn't spend all my money on merch, I would buy good coffee.","s"],["If I hadn't spent all my money on merch, I would have bought good coffee.","t"],["If I hadn't spent all my money on merch, I would buy good coffee.","mp"],["If I didn't spend all my money on merch, I would have bought good coffee.","mn"]],
+   a:"mp",why:"Потратила тогда (hadn't spent), а кофе — сейчас (would buy). Mixed.",h:"Деньги ушли вчера. А кофе выбираешь когда?",l:2},
+  {ru:"Если бы я не потратила все деньги на мерч, я бы купила нормальный кофе.",ctx:"Это было на прошлой неделе: тогда пришлось взять самый дешёвый.",
+   o:[["If I didn't spend all my money on merch, I would buy good coffee.","s"],["If I hadn't spent all my money on merch, I would have bought good coffee.","t"],["If I hadn't spent all my money on merch, I would buy good coffee.","mp"],["If I didn't spend all my money on merch, I would have bought good coffee.","mn"]],
+   a:"t",why:"И деньги, и кофе — на прошлой неделе. Third.",h:"Кофе тоже уже выпит на прошлой неделе.",l:2},
+  {ru:"Если бы только я знала!",ctx:"Не знаешь, во сколько начало концерта, и нервничаешь.",
+   o:[["If only I knew!","wn"],["If only I had known!","wp"],["If only I would know!","wouldIf"],["If only I know!","pres"]],
+   a:"wn",why:"Не знаешь сейчас — if only + past simple.",h:"Ты не знаешь прямо сейчас. Шаг назад: know → ?",l:2},
+  {ru:"Если бы только я знала!",ctx:"Вчера концерт начался на час раньше, и ты пропустила половину.",
+   o:[["If only I knew!","wn"],["If only I had known!","wp"],["If only I would know!","wouldIf"],["If only I know!","pres"]],
+   a:"wp",why:"Не знала тогда — if only + had + V3.",h:"Половина концерта уже пропущена. Шаг назад от past: had + V3.",l:2},
+  {ru:"Если бы только он позвонил!",ctx:"Ты ждёшь его звонка прямо сейчас.",
+   o:[["If only he would call!","ww"],["If only he had called!","wp"],["If only he will call!","willIf"],["If only he has called!","perf"]],
+   a:"ww",why:"Ждёшь, что другой человек что-то сделает, — if only + would.",h:"Звонка ещё ждут. Это про действие другого человека.",l:2},
+  {ru:"Если бы только он позвонил!",ctx:"Вчера весь вечер ждала. Он так и не позвонил.",
+   o:[["If only he would call!","ww"],["If only he had called!","wp"],["If only he will call!","willIf"],["If only he has called!","perf"]],
+   a:"wp",why:"Вечер прошёл, звонка не было — if only + had + V3.",h:"Ждать уже нечего: всё случилось вчера.",l:2}
+];
+
+const TYPE=[
+  {g:"if",k:"pres",s:"If I ___ enough money left, I'll buy the tour poster.",v:"have",acc:["have"],why:"First: после if — present.",h:"Это реально может случиться. После if — без will.",l:1},
+  {g:"if",k:"past",s:"If she ___ so busy, she would come to the emo night with us.",v:"not / be",acc:["weren't","were not","wasn't","was not"],alt:{"wasn't":"Так говорят в разговоре. В письме лучше weren't.","was not":"Так говорят в разговоре. В письме лучше were not."},why:"Second: past и would.",h:"Would come — второй тип. Шаг назад во времени.",l:1},
+  {g:"if",k:"pp",s:"If we ___ earlier, we would have got a spot near the stage.",v:"leave",acc:["had left","'d left"],why:"Third: had + V3.",h:"Would have got — третий тип. Какая форма в if-части?",l:1},
+  {g:"main",k:"wv",s:"If I won a trip anywhere, I ___ to New Jersey to see where My Chemical Romance started.",v:"go",acc:["would go","'d go","could go","might go"],alt:{"could go":"Тоже верно: could — «смогла бы».","might go":"Тоже верно: might — «может быть, поехала бы»."},why:"Second: won, значит would + V.",h:"Won — прошедшая форма, но про воображаемое сейчас.",l:1},
+  {g:"if",k:"pres",s:"If you ___ a CD in a hot car all day, it warps.",v:"leave",acc:["leave"],why:"Zero: факт, present и present.",h:"Это правило, так всегда.",l:1},
+  {g:"main",k:"whv",s:"If he had asked me to the gig, I ___ yes.",v:"say",acc:["would have said","'d have said","would've said"],why:"Third: would have + V3.",h:"Had asked — прошлое. Какой результат?",l:1},
+  {g:"if",k:"pres",s:"I'll text you as soon as the band ___ on stage.",v:"come",acc:["comes"],why:"После as soon as — как после if: без will. И не забудь -s: the band comes.",h:"As soon as ведёт себя как when и if. И the band — это he/she/it.",l:1},
+  {g:"wish",k:"past",s:"I wish I ___ all the words to this song.",v:"know",acc:["knew"],why:"Wish + past — сожаление о настоящем.",h:"После wish — шаг назад: know → ?",l:2},
+  {g:"wish",k:"pp",s:"I wish I ___ my hair black last summer.",v:"not / dye",acc:["hadn't dyed","had not dyed"],why:"Wish + had + V3 — сожаление о прошлом.",h:"Last summer — прошлое. Шаг назад от past.",l:2},
+  {g:"main",k:"wv",s:"If I hadn't missed the bus, I ___ at the gig right now.",v:"be",acc:["would be","'d be"],why:"Mixed: условие в прошлом, результат сейчас (right now).",h:"Посмотри на right now.",l:2},
+  {g:"if",k:"pres",s:"Unless you ___ now, there won't be any tickets left.",v:"book",acc:["book"],why:"После unless — present, без will и без второго отрицания.",h:"Unless — как if: present.",l:2},
+  {g:"wish",k:"pp",s:"If only I ___ to you about that haircut!",v:"listen",acc:["had listened","'d listened"],why:"If only + had + V3 — сожаление о прошлом.",h:"Стрижка уже сделана — это прошлое. Шаг назад: had + V3.",l:2},
+  {g:"inv",k:"past",s:"___ I in your position, I would accept the record deal.",v:"be",acc:["were"],why:"Were I… = If I were… — инверсия, для письма.",h:"Это If I were, только без if. Какая форма be?",l:3},
+  {g:"if",k:"pp",s:"If it ___ for your playlist, I would have died of boredom on the train.",v:"not / be",acc:["hadn't been","had not been"],why:"If it hadn't been for… — «если бы не…» в прошлом.",h:"Would have died — прошлое. Значит, had + V3.",l:3}
+];
+
+const ERR=[
+  {t:"If it will rain tomorrow , the open-air show will be cancelled .",e:[2,3],fix:"rains",o:["would rain","rained"],why:"После if будущее не ставим: If it rains tomorrow.",h:"Ищи будущее время там, где его быть не должно.",l:1},
+  {t:"If I would know the lyrics , I would sing along .",e:[2,3],fix:"knew",o:["had known","will know"],why:"Would в if-части не ставим. Второй тип: If I knew.",h:"Would должно стоять только в одной части.",l:1},
+  {t:"If I would have known about the show , I would have come .",e:[2,4],fix:"had known",o:["knew","would know"],why:"В if-части третьего типа — had + V3, не would have.",h:"Would have должно стоять только в одной части.",l:1},
+  {t:"I'll text you when I will get to the venue .",e:[5,6],fix:"get",o:["got","would get"],why:"После when будущее не ставим: when I get to the venue.",h:"When ведёт себя как if.",l:1},
+  {t:"If I were you , I will delete his number .",e:[6,6],fix:"would",o:["am going to","must"],why:"If I were you — второй тип, в главной части would.",h:"Это воображаемое. Посмотри на главную часть.",l:1},
+  {t:"If he had practised more , he would play better at the gig last night .",e:[7,8],fix:"would have played",o:["will play","played"],why:"Last night — прошлое: would have played.",h:"Посмотри на last night в конце.",l:1},
+  {t:"If I had more money last year , I would have bought the whole discography on vinyl .",e:[2,2],fix:"had had",o:["have","would have"],why:"Прошлое — had + V3. От have это had had: да, два раза подряд.",h:"Last year — прошлое, а had тут простое прошедшее. Нужен шаг назад.",l:1},
+  {t:"Unless you don't hurry , we'll miss the opening band .",e:[2,3],fix:"hurry",o:["didn't hurry","won't hurry"],why:"Unless уже значит «если не». Второе отрицание лишнее.",h:"Unless — это уже «если не».",l:2},
+  {t:"In case the show is sold out , we'll go to the emo night instead .",e:[0,1],fix:"If",o:["Unless","Even if"],why:"In case — «на всякий случай», заранее. Здесь пойдём на emo night, только если билетов не будет, — нужно обычное if.",h:"Emo night зависит от того, будут ли билеты. Это «на всякий случай»?",l:2},
+  {t:"I wish I would have black hair again .",e:[3,4],fix:"had",o:["have","will have"],why:"Wish + past о настоящем: I wish I had.",h:"Wish + would — только о других людях.",l:2},
+  {t:"I wish I didn't cut my own fringe yesterday .",e:[3,4],fix:"hadn't cut",o:["haven't cut","wouldn't cut"],why:"Сожаление о прошлом: wish + had + V3.",h:"Yesterday — прошлое. После wish шаг назад.",l:2},
+  {t:"If I wouldn't have heard that album , I'd be a different person now .",e:[2,4],fix:"hadn't heard",o:["didn't hear","wouldn't hear"],why:"Mixed: в if-части прошлого — had + V3. Результат с now — would + V, тут верно.",h:"Would не ставим в if-часть.",l:2},
+  {t:"Should you will need any help with tickets , please call us .",e:[2,3],fix:"need",o:["needed","would need"],why:"После should — просто глагол: Should you need.",h:"Should уже работает как if. Какой глагол после него?",l:3}
+];
+
+/* «Сказать самой»: свободные ответы, самопроверка по образцу */
+const FREE=[
+  {q:"What happens if you listen to sad songs for too long?",ru:"Что с тобой бывает, если слишком долго слушать грустные песни?",k:"z",need:null,m:["If I listen to sad songs for too long, I get really nostalgic."],tip:"Так бывает всегда — zero: if + present, present."},
+  {q:"What will you do if your favourite band announces a tour this year?",ru:"Что ты сделаешь, если твоя любимая группа объявит тур в этом году?",k:"f",need:null,m:["If they announce a tour, I'll buy tickets the same day."],tip:"Реально может случиться — first: if + present, will. После if — без will."},
+  {q:"If you started a band, what would you call it? What would you play?",ru:"Если бы ты собрала группу, как бы ты её назвала? На чём бы играла?",k:"s",need:"would",m:["If I started a band, I'd call it Broken Espresso. I would play the bass."],tip:"Воображаемое сейчас — second: if + past simple, would + V."},
+  {q:"If you could have dinner with any writer or musician, who would it be?",ru:"Если бы ты могла поужинать с любым писателем или музыкантом, кто бы это был?",k:"s",need:"would",m:["If I could have dinner with anyone, it would be Chuck Palahniuk. I'd ask him about Fight Club."],tip:"Second: could = «могла бы» в if-части, would в главной."},
+  {q:"Think of a concert or party you missed. What would have happened if you had gone?",ru:"Вспомни концерт или вечеринку, которую ты пропустила. Что было бы, если бы ты пошла?",k:"t",need:"had",m:["If I had gone to that party, I would have met my favourite band's drummer."],tip:"Воображаемое прошлое — third: if + had V3, would have V3."},
+  {q:"What would you be doing now if you hadn't chosen law?",ru:"Чем бы ты занималась сейчас, если бы не выбрала юриспруденцию?",k:"m",need:"had",m:["If I hadn't chosen law, I'd be working in a record shop now."],tip:"Выбор в прошлом (had + V3), результат сейчас (would + V) — mixed."},
+  {q:"Name one thing about your personality. How would the past have been different if you weren't like that?",ru:"Назови одну черту своего характера. Как сложилось бы прошлое, если бы ты была другой?",k:"m",need:"have",m:["If I weren't so stubborn, I would have changed my haircut years ago."],tip:"Черта сейчас (past simple), результат в прошлом (would have V3) — mixed."},
+  {q:"What do you wish you had, or could do, right now?",ru:"Что бы тебе хотелось иметь или уметь прямо сейчас?",k:"w",need:null,m:["I wish I had more time for Palahniuk.","I wish I could play the drums."],tip:"Сожаление о настоящем: wish + past simple или could."},
+  {q:"What do you wish you had done differently as a teenager?",ru:"Что тебе хотелось бы сделать по-другому в подростковом возрасте?",k:"w",need:"had",m:["I wish I had learned to play the guitar.","I wish I hadn't cut my own fringe."],tip:"Сожаление о прошлом: wish + had V3."},
+  {q:"Which annoying habit of someone around you do you wish would change?",ru:"Какую раздражающую привычку кого-то рядом с тобой хочется изменить?",k:"w",need:"would",m:["I wish my neighbours would stop drilling at 8 am."],tip:"О чужом поведении: wish + would."},
+  {q:"Your friend is going to her first gig. Give her advice with unless or in case.",ru:"Подруга идёт на свой первый концерт. Дай совет с unless или in case.",k:"b",need:null,m:["Take earplugs in case it's too loud.","Don't stand at the front unless you want to get crushed."],tip:"In case — заранее, на всякий случай. Unless — «если не», без второго отрицания.",l:2},
+  {q:"Write one polite line for an email to a venue, offering help if they have questions.",ru:"Напиши одну вежливую фразу для письма площадке: предложи помощь, если у них будут вопросы.",k:"c",need:"should",m:["Should you have any questions, please do not hesitate to contact me."],tip:"Формула для писем: Should you + глагол.",l:3}
+];
+/* проверка только типичных ошибок по форме, не по смыслу */
+function lintFree(it,raw){
+  const t=' '+norm(raw).replace(/[’]/g,"'")+' ',out=[];
+  const clauses=t.match(/\b(if|when|unless|as soon as|in case|if only)\b[^,.;!?]*/g)||[];
+  const hasCond=/\b(if|wish|unless|in case|should you|were i|had i)\b/.test(t);
+  if(!hasCond)out.push("Здесь не видно условия. Попробуй if, wish, unless или in case.");
+  clauses.forEach(c=>{
+    if(/\b(will|won't)\b|'ll\b/.test(c))out.push("Похоже, will стоит в части с if, when или unless. Если это уже главная часть — поставь запятую после условия.");
+    if(/\bwould(n't)?\b/.test(c)&&!/^if you would like/.test(c))out.push("Похоже, would стоит в части с if. Would бывает только в главной части. Если это уже главная часть — поставь запятую после условия.");
+    if(/^unless\b/.test(c)&&/n't\b|\bnot\b/.test(c))out.push("После unless второе отрицание не нужно.");
+  });
+  if(/\bwish (i|we) would\b/.test(t))out.push("Wish + would — о чужом поведении. О себе: I wish I had / I wish I could / I wish I had + V3.");
+  if(/\bwould of\b|\bcould of\b|\bshould of\b/.test(t))out.push("Would of — ошибка на письме. Правильно would have или would've.");
+  if(it.need==='had'&&!/\bhad\b|\bhadn't\b|'d (been|gone|done|had|known|met|seen|chosen|learned|learnt|cut|left|bought|heard|taken|made)\b/.test(t))out.push("Не вижу had: для воображаемого прошлого обычно нужно had + V3.");
+  if(it.need==='would'&&!/\bwould\b|'d\b|\bcould\b|\bmight\b|\bwouldn't\b/.test(t))out.push("Не вижу would (или could, might) в главной части.");
+  if(it.need==='have'&&!/\b(would|could|might)(n't)? have\b|would've|'d have/.test(t))out.push("Результат в прошлом: нужно would have + V3.");
+  if(it.need==='should'&&!/^ ?should you\b/.test(t))out.push("Попробуй начать со Should you…");
+  return [...new Set(out)];
+}
+
+const W=s=>s.split(' ');
+const TR=[
+  {ru:"Если бы я знала его номер, я бы ему написала.",ctx:"Сейчас: номера у меня нет.",a:[W("If I knew his number I would text him")],s:["If I knew his number, I would text him."],x:["had","known","will"],
+   xn:{had:"Это про сейчас — had + V3 тут лишнее. Хватит past simple: knew.",known:"Это про сейчас — had known тут лишнее. Хватит past simple: knew.",will:"Это воображаемое — will не подходит, нужно would."},
+   why:"Сейчас и нереально — second: past simple и would.",h:"Это про сейчас. Нереальное сейчас — шаг назад: past simple.",l:1},
+  {ru:"Если бы я знала его номер, я бы ему написала.",ctx:"Вчера: номера тогда не было.",a:[W("If I had known his number I would have texted him")],s:["If I had known his number, I would have texted him."],x:["knew","text","will"],
+   xn:{knew:"Это про вчера — нужен шаг назад от прошлого: had known.",text:"Результат тоже вчера: would have + V3, texted.",will:"Это воображаемое — will не подходит, нужно would."},
+   why:"Прошлое, которое уже не изменить — third: had + V3 и would have + V3.",h:"Это про вчера. Нереальное прошлое — шаг назад от past: had + V3.",l:1},
+  {ru:"Если на фестивале пойдёт дождь, у меня потечёт подводка.",ctx:"",a:[W("If it rains at the festival my eyeliner will run")],s:["If it rains at the festival, my eyeliner will run."],x:["will","rain"],
+   xn:{will:"Will — только в главной части. После if будущее не ставим: if it rains, хотя по-русски «пойдёт».",rain:"It — это he/she/it: rains."},
+   why:"Реально может случиться — first. После if — present, даже если по-русски будущее.",h:"«Пойдёт дождь» — будущее. Но после if английский ставит present.",l:1},
+  {ru:"На твоём месте я бы ему не писала.",ctx:"",a:[W("If I were you I wouldn't text him"),W("If I was you I wouldn't text him")],s:["If I were you, I wouldn't text him.","If I was you, I wouldn't text him."],n:["","Так говорят в разговоре. В письме лучше were."],x:["am","won't"],
+   xn:{am:"«На твоём месте» — воображаемое: were, не am.","won't":"Это воображаемое — не won't, а wouldn't."},
+   why:"«На твоём месте» — If I were you, готовая фраза.",h:"«На твоём месте» по-английски — «если бы я была тобой».",l:1},
+  {ru:"Когда доберусь до клуба, напишу тебе.",ctx:"",a:[W("When I get to the club I will text you"),W("When I arrive at the club I will text you")],s:["When I get to the club, I'll text you.","When I arrive at the club, I'll text you."],n:["","Тоже верно."],x:["will"],
+   xn:{will:"Will — только в главной части. После when будущее не ставим: when I get…"},
+   why:"После when — как после if: present, без will.",h:"When ведёт себя как if: без will после него.",l:1},
+  {ru:"Если оставить пластинку на солнце, она деформируется.",ctx:"",a:[W("If you leave a record in the sun it warps")],s:["If you leave a record in the sun, it warps."],x:["will","left"],
+   xn:{will:"Это факт, так всегда — zero: present в обеих частях, без will.",left:"Это не воображаемое, а факт: present, leave."},
+   why:"Факт, так всегда — zero. «Если оставить» — you, как «ты» вообще.",h:"Это просто факт. И по-английски нужно подлежащее: you.",l:1},
+  {ru:"Жаль, что я не пошла на тот концерт.",ctx:"",a:[W("I wish I had gone to that concert"),W("I wish I had gone to that gig")],s:["I wish I had gone to that concert.","I wish I had gone to that gig."],n:["","Gig — разговорное слово для концерта, тоже верно."],x:["went","would"],
+   xn:{went:"Сожаление о прошлом — шаг назад от past: had gone.",would:"Wish + would — только о чужом поведении. О себе — had + V3."},
+   why:"Сожаление о прошлом: wish + had + V3.",h:"Жалеешь о прошлом — после wish шаг назад: had + V3.",l:2},
+  {ru:"Жаль, что я не умею играть на барабанах.",ctx:"",a:[W("I wish I could play the drums"),W("I wish I could play drums")],s:["I wish I could play the drums.","I wish I could play drums."],n:["","Без the тоже верно."],x:["can","would"],
+   xn:{can:"После wish — шаг назад: can → could.",would:"Wish + would — о чужом поведении. Про своё умение — could."},
+   why:"Сожаление о настоящем умении: wish + could.",h:"Не умею сейчас. После wish шаг назад: can → could.",l:2},
+  {ru:"Если не поторопишься, пропустим первую группу.",ctx:"",a:[W("Unless you hurry we will miss the first band"),W("If you don't hurry we will miss the first band")],s:["Unless you hurry, we'll miss the first band.","If you don't hurry, we'll miss the first band."],n:["Можно и If you don't hurry.","Тоже верно. С unless — без второго отрицания."],x:["won't"],
+   xn:{"won't":"Won't переворачивает смысл: получится «не пропустим».","don't":"Unless уже значит «если не» — второе отрицание лишнее."},
+   why:"Unless = if not. Второе отрицание не нужно.",h:"Если берёшь unless — оно уже значит «если не».",l:2},
+  {ru:"Возьми худи на случай, если будет холодно.",ctx:"",a:[W("Take a hoodie in case it gets cold"),W("Take a hoodie in case it is cold")],s:["Take a hoodie in case it gets cold.","Take a hoodie in case it's cold."],n:["","Тоже верно."],x:["if","will"],
+   xn:{if:"If значило бы «возьми, когда уже похолодает». Заранее, на всякий случай — in case.",will:"После in case будущее не ставим: in case it gets cold."},
+   why:"In case — заранее, на всякий случай. If значило бы «возьми, когда уже похолодает».",h:"«На случай, если» — это не if.",l:2},
+  {ru:"Если бы я не пошла на тот концерт, я бы сейчас тебя не знала.",ctx:"",a:[W("If I hadn't gone to that concert I wouldn't know you now"),W("If I hadn't gone to that concert I wouldn't know you")],s:["If I hadn't gone to that concert, I wouldn't know you now.","If I hadn't gone to that concert, I wouldn't know you."],n:["","Тоже верно, now можно опустить."],x:["didn't","have","known"],
+   xn:{"didn't":"Концерт был в прошлом — нужен шаг назад: hadn't gone.",have:"«Сейчас не знала бы» — результат сейчас: wouldn't know, без have.",known:"«Сейчас не знала бы» — результат сейчас: wouldn't know, без have."},
+   why:"Mixed: концерт в прошлом (had + V3), результат сейчас (would + V).",h:"Концерт — прошлое, а «сейчас не знала бы» — настоящее.",l:2},
+  {ru:"Если у вас возникнут вопросы о туре, пожалуйста, свяжитесь с нами.",ctx:"Официальное письмо. Попробуй начать со Should.",a:[W("Should you have any questions about the tour please contact us"),W("If you have any questions about the tour please contact us")],s:["Should you have any questions about the tour, please contact us.","If you have any questions about the tour, please contact us."],n:["","Тоже верно, просто проще. Со Should — официальнее."],x:["will","had"],
+   xn:{will:"После should — просто глагол: should you have.",had:"Should you have — без had: это не прошлое."},
+   why:"Should you have = If you have, только официальнее.",h:"После Should — подлежащее и простой глагол.",l:3},
+  {ru:"Если бы не твоя помощь, я бы завалила экзамен.",ctx:"",a:[W("If it hadn't been for your help I would have failed the exam"),W("Without your help I would have failed the exam")],s:["If it hadn't been for your help, I would have failed the exam.","Without your help, I would have failed the exam."],n:["","Тоже верно и проще."],x:["wasn't","fail"],
+   xn:{"wasn't":"Это прошлое — «если бы не» тогда: if it hadn't been for.",fail:"Результат в прошлом: would have failed."},
+   why:"If it hadn't been for… — «если бы не…» в прошлом.",h:"«Если бы не» в прошлом — If it hadn't been for.",l:3}
+];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+const isP=t=>/^[.,!?;:]$/.test(t);
+const join=arr=>arr.reduce((a,t,i)=>i===0?t:a+(isP(t)?'':' ')+t,'');
+const norm=s=>String(s).toLowerCase().replace(/[’‘`´]/g,"'").replace(/\s+/g,' ').replace(/[.!?,]+$/,'').trim();
+const mark=t=>esc(t).replace(/\[([^\]]+)\]/g,'<b>$1</b>');
+const plain=t=>t.replace(/[\[\]]/g,'');
+const SPK='<svg class="spk" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const say=t=>`<button class="say" data-say="${esc(plain(t))}">${SPK}<span lang="en">${mark(t)}</span></button>`;
+/* плитки без заглавных — первое слово не подсказывает начало фразы */
+const tl=w=>/^I('|$)/.test(w)?w:w.toLowerCase();
+const cap=w=>w[0].toUpperCase()+w.slice(1);
+const lvlTag=l=>l===2?'<span class="tag">B2</span>':l===3?'<span class="tag c1">C1, для письма</span>':'';
+
+/* speech */
+const canSpeak='speechSynthesis' in window;
+let VOICE=null;
+const normLang=l=>String(l||'').replace('_','-').toLowerCase();
+function pickVoice(){
+  let vs=[];try{vs=speechSynthesis.getVoices()||[];}catch(e){}
+  const score=v=>{const l=normLang(v.lang),n=String(v.name||'').toLowerCase();let s;
+    if(l==='en-gb')s=100;else if(l.startsWith('en'))s=40;else return -1;
+    if(/google|natural|neural|enhanced|premium|siri/.test(n))s+=20;
+    if(/compact|espeak|eloquence/.test(n))s-=15;return s;};
+  let best=null,bs=-1;for(const v of vs){const sc=score(v);if(sc>bs){bs=sc;best=v;}}return best;
+}
+function speak(t){
+  if(!canSpeak)return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=VOICE||(VOICE=pickVoice());
+    u.lang=v?normLang(v.lang).replace(/-(\w+)$/,(m,r)=>'-'+r.toUpperCase()):'en-GB';if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u);}catch(e){}
+}
+if(canSpeak){try{VOICE=pickVoice();speechSynthesis.addEventListener('voiceschanged',()=>{VOICE=pickVoice();});}catch(e){}}
+const speakBtn=t=>canSpeak?`<button class="speak" data-say="${esc(t)}">Послушать</button>`:'';
+
+/* state */
+let S;
+const LISTS={sort:SORT,now:NOW,choice:CHOICE,type:TYPE,err:ERR,tr:TR};
+const TABKEY={sort:1,now:2,choice:3,type:4,err:5,tr:6};
+const pool=list=>list.map((_,i)=>i);
+/* order: индекс задания; отрицательное число -(i+1) — то же задание на повторе внутри круга */
+function freshQ(key,only){const order=shuffle(only||pool(LISTS[key]));
+  return {order,total:order.length,round:only?2:1,missed:[],ok:false,i:0,wrong:[],solved:false,revealed:false,first:0,tries:0,msg:null,typed:'',opts:null,open:false,wrongOpts:[],misses:0,hinted:false,tiles:null,ans:[],pick:0};}
+const idxOf=v=>v<0?-v-1:v;
+const isRep=q=>q.order[q.i]<0;
+/* засчитать с первой попытки — только для первого показа задания */
+function credit(q){q.ok=true;if(!isRep(q))q.first++;}
+function resetAll(){
+  S={tab:0,done:[false,false,false,false,false,false,false,false]};
+  for(const k in LISTS)S[k]=freshQ(k);
+  S.free=freshFree();
+}
+
+let FOCUS=null,SHAKE=null,LIVE='';
+const NEXT_FOCUS='[data-next], .row [data-go]';
+const reduceMotion=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function renderNav(){
+  $('#nav').innerHTML=STAGES.map((n,i)=>`<li><button class="song${i===S.tab?' cur':''}${S.done[i]?' done':''}" data-tab="${i}"${i===S.tab?' aria-current="step"':''}><span class="n">${i+1}.</span><span>${n}</span>${S.done[i]?'<span class="sr"> (пройдено)</span>':''}</button></li>`).join('');
+}
+
+/* learn */
+function tcard(k,tag,when,forms,exs,notes){
+  return `<section class="card tcard k-${k}"><h2 class="tname">${TY[k].name}${tag?' '+lvlTag(tag):''}</h2><p class="when">${when}</p>
+  <div>${forms.map(f=>`<p class="formula">${f}</p>`).join('')}</div>
+  <div class="exs">${exs.map(say).join('')}</div>${notes.map(n=>`<p class="note">${n}</p>`).join('')}</section>`;
+}
+function learnHTML(){
+  return `
+  <section class="card">
+    <h2>Два вопроса вместо номеров</h2>
+    <p>Номер типа можно не помнить. Спроси себя: это правда или воображаемое? И про какое время?</p>
+    <div class="grid">
+      <div class="gh">Правда: реально может быть</div><div class="gh">Неправда: воображаемое</div>
+      <div class="gr">Сейчас и будущее</div>
+      <div class="cell k-f"><p class="cn">Zero, First</p><p class="cd">Zero — так всегда. First — может случиться.</p>${say("If it [rains], the show['ll move] indoors.")}</div>
+      <div class="cell k-s"><p class="cn">Second</p><p class="cd">Не так сейчас или вряд ли будет.</p>${say("If I [had] a car, I['d drive] to every gig.")}</div>
+      <div class="gr">Прошлое</div>
+      <div class="cell dim"><p class="cn">Реальное прошлое</p><p class="cd">Обычные времена, ничего особенного.</p>${say("If you [saw] him at the show, why [didn't] you tell me?")}</div>
+      <div class="cell k-t"><p class="cn">Third</p><p class="cd">Не было, и уже не изменить.</p>${say("If I['d known], I['d have come].")}</div>
+    </div>
+    <p class="rule"><b>Главный приём: воображаемое — это шаг назад во времени.</b> Настоящее уходит в past simple (have → had), прошлое уходит в past perfect (had + V3).</p>
+    <p class="note">Mixed — условие из одной строки, результат из другой. Wish — та же логика, только без if. Метки B2 и C1 ниже — примерный уровень, а не официальная шкала.</p>
+  </section>
+  ${tcard('z',0,'Правило, факт, привычка — так бывает каждый раз.',['if + present, present'],
+    ["If I [hear] that song, I [think] of you.","If you [stand] next to the speakers, your ears [ring] for days.","If you [wash] band tees in hot water, the print [cracks]."],
+    ['Здесь if почти равно when: «каждый раз, когда».'])}
+  ${tcard('f',0,'Реально может случиться в будущем.',['if + present, will + V'],
+    ["If they [play] a second encore, we['ll miss] the last metro.","If you [don't reply], I['ll assume] you're asleep.","If you [see] the drummer, [tell] him I said hi."],
+    ['<b>После if — present, даже если по-русски будущее:</b> «если сыграют» = if they play.','Вместо will можно might, can или повелительное: tell him.'])}
+  ${tcard('s',0,'Воображаемое сейчас или маловероятное будущее.',['if + past simple, would + V'],
+    ["If I [had] more time, I [would read] all of Palahniuk.","If I [were] you, I['d switch] to oat milk.","If my hair [were] blue, my professors [would notice]."],
+    ['<b>Форма прошедшая, смысл настоящий:</b> had — не «имела», а «если бы было».','Were — для всех лиц: if I were, if she were. В разговоре часто говорят if I was — это не ошибка, но в письме лучше were.','Вместо would — could («смогла бы») или might («может быть»).'])}
+  ${tcard('t',0,'Воображаемое прошлое — то, что уже не изменить. Сожаления и упрёки.',['if + had V3, would have V3'],
+    ["If I [had left] earlier, I [wouldn't have missed] the last metro.","If she [hadn't called], I [would have forgotten] about the exam.","If we['d bought] tickets in May, we [could have stood] at the front."],
+    ['На слух would have сливается в would’ve. Носители иногда пишут would of — это ошибка, так не пиши.'])}
+  ${tcard('m',2,'Условие и результат в разном времени.',['прошлое → сейчас: if + had V3, would + V','сейчас → прошлое: if + past, would have V3'],
+    ["If you [hadn't sent] me that playlist, I [wouldn't know] this band.","If I [hadn't chosen] law, I['d be] a sound engineer now.","If I [weren't] so stubborn, I [would have changed] my haircut years ago."],
+    ['Слова-подсказки для результата в настоящем: now, today, still.'])}
+  ${tcard('w',2,'Сожаление без if. Логика та же: шаг назад во времени.',['wish + past: о настоящем','wish + had V3: о прошлом','wish + would: о чужом поведении'],
+    ["I wish I [had] more free time.","I wish I [could play] the guitar.","I wish I [hadn't said] that.","If only I [had listened] to you.","I wish you [would stop] checking your phone."],
+    ['Wish + would — только о других людях и о том, что раздражает. О себе так не говорят: не I wish I would know, а I wish I knew.','If only — то же, что wish, только эмоциональнее.'])}
+  <section class="card trap">
+    <h2>Ловушка «бы»</h2>
+    <p>По-русски одно «бы» на два английских типа. Различает их только контекст.</p>
+    <p class="ru">Если бы я знала, я бы пришла.</p>
+    <div class="trow k-s"><span class="lab" style="color:var(--c)">Сейчас, не знаю</span><div class="exs">${say("If I [knew], I [would come].")}</div></div>
+    <div class="trow k-t"><span class="lab" style="color:var(--c)">Тогда, не знала</span><div class="exs">${say("If I [had known], I [would have come].")}</div></div>
+    <p class="note">Подсказки для прошлого: вчера, тогда, в прошлом году, уже. Если их нет, спроси себя: это ещё можно изменить?</p>
+  </section>
+  <section class="card">
+    <h2>Не только if ${lvlTag(2)}</h2>
+    ${[["unless","«если не»","[Unless] you hurry, you'll miss the opening band.","Без второго отрицания: не unless you don't hurry."],
+       ["as long as, provided (that)","«при условии, что»","You can borrow my headphones [as long as] you give them back.",""],
+       ["in case","«на случай, если», заранее","Take a hoodie [in case] it gets cold.","Сравни: take a hoodie if it gets cold — «возьми худи, только если похолодает»: решаешь потом, а не заранее."],
+       ["even if","«даже если»","I'm going to the gig [even if] it rains.",""],
+       ["only if","«только если»","I'll go [only if] you come with me.",""],
+       ["what if, suppose","«а что, если»","[What if] we just stayed at home tonight?","С past — как во втором типе."],
+       ["otherwise","«иначе»","Hurry up, [otherwise] we'll be late.",""],
+       ["without","«без… бы»","[Without] coffee and loud music, I couldn't function.",""]]
+      .map(([w,m,e,n])=>`<div class="brow"><div><div class="w">${w}</div><div class="m">${m}</div></div><div><div class="exs">${say(e)}</div>${n?`<p class="note">${n}</p>`:''}</div></div>`).join('')}
+  </section>
+  <section class="card">
+    <h2>If или when</h2>
+    <p>When — уверена, что случится. If — может, да, а может, нет.</p>
+    <div class="exs">${say("[When] I get home, I'll text you.")}${say("[If] I get home early, I'll text you.")}</div>
+    <p class="note">После when, as soon as, before, after и until — тоже без will: as soon as I arrive.</p>
+  </section>
+  <section class="card">
+    <h2>Как читать I'd ${lvlTag(2)}</h2>
+    <p>I'd — это или I would, или I had. Смотри, что идёт следом.</p>
+    <div class="drow"><div>I'd + глагол</div><div class="pair"><span>I'd go</span><span class="muted">= I would go</span></div></div>
+    <div class="drow"><div>I'd + V3</div><div class="pair"><span>if I'd gone</span><span class="muted">= if I had gone</span></div></div>
+    <div class="drow"><div>I'd have + V3</div><div class="pair"><span>I'd have gone</span><span class="muted">= I would have gone</span></div></div>
+    <div class="exs" style="margin-top:10px">${say("If I['d known], I['d have come].")}</div>
+  </section>
+  <section class="card">
+    <h2>Для писем ${lvlTag(3)}</h2>
+    <p class="muted">Это готовые фразы для официальных писем. Строить их с нуля не обязательно — достаточно узнавать и вставлять целиком.</p>
+    ${[["[Should] you have any questions, please let me know.","= If you have any questions"],
+       ["[Were] I in your position, I would accept.","= If I were in your position"],
+       ["[Had] I known earlier, I would have told you.","= If I had known earlier"],
+       ["[If it hadn't been for] your help, I would have failed.","«если бы не…»; ещё официальнее — but for your help"],
+       ["If you [would] like to join us, please reply by Friday.","would в if-части здесь — вежливость, не ошибка"]]
+      .map(([e,n])=>`<div class="brow"><div class="exs">${say(e)}</div><div class="m">${n}</div></div>`).join('')}
+  </section>
+  <section class="card">
+    <h2>Не говори так</h2>
+    <p class="muted">Эти ошибки появляются, когда переводим с русского слово в слово.</p>
+    ${[["«если пойдёт дождь»","If it will rain","If it rains"],
+       ["«если бы я знала»","If I would know","If I knew"],
+       ["«если бы я тогда знала»","If I would have known","If I had known"],
+       ["«когда приду»","When I will come","When I come"],
+       ["«если не поторопишься»","Unless you don't hurry","Unless you hurry"],
+       ["«жаль, что у меня нет»","I wish I would have","I wish I had"],
+       ["«жаль, что я сказала»","I wish I didn't say","I wish I hadn't said"],
+       ["«если пойдёт дождь, останемся дома»","In case it rains, we'll stay home","If it rains, we'll stay home"],
+       ["«я бы сдал на прошлой неделе»","I would pass last week","I would have passed last week"]]
+      .map(([r,x,v])=>`<div class="drow"><div>${r}</div><div class="pair"><span class="x">${x}</span><span class="v">${v}</span></div></div>`).join('')}
+  </section>
+  <div class="row"><button class="btn" data-go="1">Перейти к тренировке</button></div>`;
+}
+
+/* exercise helpers */
+function qHead(q,label,l){
+  const n=q.order.length;
+  const rep=q.i<n&&isRep(q)?' <span class="tag again">Ещё раз</span>':'';
+  const r2=q.round===2?' <span class="tag">Повтор ошибок</span>':'';
+  return `<div class="meta"><span>${label}${l?' '+lvlTag(l):''}${r2}${rep}</span><span>${Math.min(q.i+1,n)} из ${n}</span></div><div class="bar"><i style="width:${(q.i+(q.solved?1:0))/n*100}%"></i></div>`;
+}
+/* правильная версия задания — для списка ошибок в конце */
+function fullOf(key,it){
+  if(key==='sort')return {en:it.s,note:TY[it.a].name};
+  if(key==='now'){const c=it.o.find(o=>o[1]===it.a);return {en:c[0],note:it.ru+' — '+it.ctx};}
+  if(key==='choice')return {en:it.s.replace('___',it.a)};
+  if(key==='type')return {en:it.s.replace('___',it.acc[0])};
+  if(key==='err'){const t=it.t.split(' '),[a,b]=it.e;return {en:join([...t.slice(0,a),it.fix,...t.slice(b+1)])};}
+  if(key==='tr')return {en:it.s[0],note:it.ru};
+}
+function endHTML(q,key,next){
+  const list=LISTS[key],miss=q.missed;
+  const lead=q.round===2?'правильно с первой попытки в повторе ошибок.':'правильно с первой попытки.';
+  const r=q.total?q.first/q.total:1,verdict=r===1?'Ни одной слезинки.':r>=.8?'Почти без драмы.':r>=.5?'Немного драмы — это нормально.':'Бывает. Повтори ошибки — и станет легче.';
+  let h=`<section class="card"><p class="big">${q.first} / ${q.total}</p><p class="verdict">${verdict}</p><p>${lead}</p>`;
+  if(miss.length){
+    h+=`<h2 class="miss-h">Над чем ещё поработать</h2><p class="muted">Здесь были ошибки. Правильные версии — послушай и проговори вслух.</p>
+    <div class="exs">${miss.map(i=>{const f=fullOf(key,list[i]);return `<div class="miss">${f.note?`<span class="miss-n">${esc(f.note)}</span>`:''}${say(f.en)}</div>`;}).join('')}</div>`;
+  } else h+=`<p class="muted">Без единой ошибки.</p>`;
+  h+=`<div class="row">${next!==null?`<button class="btn" data-go="${next}">Дальше</button>`:''}${miss.length?`<button class="btn${next===null?'':' ghost'}" data-retry="${key}">Повторить ошибки (${miss.length})</button>`:''}<button class="btn ghost" data-reset="${key}">Пройти всё заново</button></div></section>`;
+  return h;
+}
+const cur=key=>LISTS[key][idxOf(S[key].order[S[key].i])];
+
+function sortHTML(){
+  const q=S.sort;if(q.i>=q.order.length)return endHTML(q,'sort',2);
+  const it=cur('sort');
+  let h=`<section class="card">${qHead(q,'Разложи по типам')}<p class="sent" lang="en">${esc(it.s)}</p>
+  <div class="buckets">${BK.map(k=>`<button class="bucket k-${k}${q.solved===k?' hit':''}" data-bucket="${k}"${q.wrong.includes(k)||q.solved?' disabled':''}><span class="bn">${TY[k].name}</span><span class="bf">${TY[k].f}</span></button>`).join('')}</div>`;
+  if(q.solved)h+=`<div class="fb ok"><b class="ok">Верно, ${TY[it.a].name}.</b> ${it.why}<br>${speakBtn(it.s)}</div><div class="row"><button class="btn" data-next="sort">Дальше</button></div>`;
+  else if(q.wrong.length)h+=`<div class="fb bad"><b class="bad">Не сюда.</b> ${it.h}</div>`;
+  return h+'</section>';
+}
+
+function nowHTML(){
+  const q=S.now;if(q.i>=q.order.length)return endHTML(q,'now',3);
+  const it=cur('now');if(!q.opts)q.opts=shuffle(it.o.map((_,i)=>i));
+  let h=`<section class="card">${qHead(q,'Сейчас или тогда? Выбери перевод',it.l>1?it.l:0)}<p class="ru-src">${esc(it.ru)}</p><p class="ctx now-ctx">${esc(it.ctx)}</p>
+  <div class="nopts" lang="en">${q.opts.map(i=>{const [t,k]=it.o[i];const hit=q.solved&&k===it.a;return `<button class="opt nopt${hit?' hit':''}" data-nopt="${i}"${q.wrong.includes(i)||q.solved?' disabled':''}>${esc(t)}</button>`;}).join('')}</div>`;
+  if(q.solved){const c=it.o.find(o=>o[1]===it.a)[0];h+=`<div class="fb ok"><b class="ok">Верно.</b> ${it.why}<br>${speakBtn(c)}</div><div class="row"><button class="btn" data-next="now">Дальше</button></div>`;}
+  else if(q.wrong.length){const k=it.o[q.wrong[q.wrong.length-1]][1];h+=`<div class="fb bad"><b class="bad">Не совсем.</b> ${MEAN[k]} ${it.h}</div>`;}
+  return h+'</section>';
+}
+
+function choiceHTML(){
+  const q=S.choice;if(q.i>=q.order.length)return endHTML(q,'choice',4);
+  const it=cur('choice');if(!q.opts)q.opts=shuffle(it.o);
+  const [pre,post]=it.s.split('___');
+  let h=`<section class="card">${qHead(q,'Выбери форму',it.l>1?it.l:0)}
+  <p class="sent" lang="en">${esc(pre)}<span class="gap${q.solved?' got':''}">${q.solved?esc(it.a):'&nbsp;'}</span>${esc(post)}</p>
+  <div class="opts" lang="en">${q.opts.map((o,i)=>`<button class="opt${q.solved&&o===it.a?' hit':''}" data-opt="${i}"${q.wrong.includes(o)||q.solved?' disabled':''}>${esc(o)}</button>`).join('')}</div>`;
+  if(q.solved){const full=it.s.replace('___',it.a);h+=`<div class="fb ok"><b class="ok">Верно.</b> ${it.why}<br>${speakBtn(full)}</div><div class="row"><button class="btn" data-next="choice">Дальше</button></div>`;}
+  else if(q.wrong.length)h+=`<div class="fb bad"><b class="bad">Не совсем.</b> ${it.h}</div>`;
+  return h+'</section>';
+}
+
+function typeHTML(){
+  const q=S.type;if(q.i>=q.order.length)return endHTML(q,'type',5);
+  const it=cur('type');const [pre,post]=it.s.split('___');
+  const shown=q.solved?(q.revealed?it.acc[0]:q.solved):'';
+  let h=`<section class="card">${qHead(q,'Впиши форму глагола',it.l>1?it.l:0)}
+  <p class="sent" lang="en">${esc(pre)}<span class="gap${q.solved?(q.revealed?' rev':' got'):''}">${q.solved?esc(shown):'&nbsp;'}</span>${q.solved?'':`<span class="vh">(${esc(it.v)})</span>`}${esc(post)}</p>`;
+  if(!q.solved){
+    h+=`<div class="typerow"><input id="ans" lang="en" value="${esc(q.typed)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Форма глагола" aria-label="Форма глагола ${esc(it.v)}"><button class="btn" data-check="1">Проверить</button></div>`;
+    if(q.msg)h+=`<div class="fb bad"><b class="bad">Не совсем.</b> ${q.msg}</div>`;
+  } else {
+    const full=it.s.replace('___',shown);
+    const note=(!q.revealed&&it.alt&&it.alt[norm(q.solved)])?' '+it.alt[norm(q.solved)]:'';
+    h+=q.revealed?`<div class="fb bad"><b class="bad">Правильно так:</b> <span class="full">${esc(full)}</span>${it.why}<br>${speakBtn(full)}</div>`
+                 :`<div class="fb ok"><b class="ok">Верно.</b> ${it.why}${note}<br>${speakBtn(full)}</div>`;
+    h+=`<div class="row"><button class="btn" data-next="type">Дальше</button></div>`;
+  }
+  return h+'</section>';
+}
+
+function errHTML(){
+  const q=S.err;if(q.i>=q.order.length)return endHTML(q,'err',6);
+  const it=cur('err'),toks=it.t.split(' '),[a,b]=it.e;
+  let h=`<section class="card">${qHead(q,'В каждом предложении одна ошибка',it.l>1?it.l:0)}<p class="toks" lang="en">`;
+  h+=toks.map((t,i)=>{
+    if(isP(t))return `<span>${t}</span>`;
+    const sp=i>0?' ':'';const inR=i>=a&&i<=b;
+    if(q.solved){
+      if(inR){const struck=`<span class="tok plain gone">${esc(t)}</span>`;return sp+struck+(i===b?` <span class="tok plain fixed">${esc(it.fix)}</span>`:'');}
+      return sp+`<span class="tok plain">${esc(t)}</span>`;
+    }
+    if(q.open)return sp+`<span class="tok plain${inR?' sel':''}">${esc(t)}</span>`;
+    return sp+`<button class="tok${inR&&q.hinted?' hl':''}" data-tok="${i}">${esc(t)}</button>`;
+  }).join('')+'</p>';
+  if(q.solved){
+    const fixed=join([...toks.slice(0,a),it.fix,...toks.slice(b+1)]);
+    h+=q.revealed?`<div class="fb bad"><b class="bad">Правильно так:</b> <span class="full">${esc(fixed)}</span>${it.why}<br>${speakBtn(fixed)}</div>`
+                 :`<div class="fb ok"><b class="ok">Верно.</b> <span class="full">${esc(fixed)}</span>${it.why}<br>${speakBtn(fixed)}</div>`;
+    h+=`<div class="row"><button class="btn" data-next="err">Дальше</button></div>`;
+  } else if(q.open){
+    h+=`<p class="muted">Чем заменить «${esc(join(toks.slice(a,b+1)))}»?</p><div class="opts" lang="en">${q.opts.map((o,i)=>`<button class="opt" data-fix="${i}"${q.wrongOpts.includes(i)?' disabled':''}>${esc(o)}</button>`).join('')}</div>`;
+    if(q.wrongOpts.length)h+=`<div class="fb bad"><b class="bad">Не совсем.</b> ${it.h}</div>`;
+  } else {
+    h+=`<p class="muted">Нажми на слово с ошибкой.</p>`;
+    if(q.msg)h+=`<div class="fb bad">${q.msg}</div>`;
+    h+=`<div class="row"><button class="btn ghost" data-hint="1">Подсказка</button></div>`;
+  }
+  return h+'</section>';
+}
+
+function tilesFor(it){
+  const bag=[];
+  it.a.forEach(ans=>{const c={};ans.forEach(w=>{c[w]=(c[w]||0)+1;});
+    Object.entries(c).forEach(([w,n])=>{const have=bag.filter(x=>x===w).length;for(let k=have;k<n;k++)bag.push(w);});});
+  return shuffle(bag.concat(it.x));
+}
+function freeHTML(){
+  const q=S.free,n=q.order.length;
+  if(q.i>=n){
+    const rows=q.order.map((idx,k)=>({it:FREE[idx],a:(q.ans[idx]||'').trim(),k}));
+    const done=rows.filter(r=>r.a).length;
+    return `<section class="card"><p class="big">${done} / ${n}</p><p>ответов написано.</p>
+    <p class="muted">Скопируй ответы и пришли преподавателю — он проверит смысл и всё, что тренажёр не ловит.</p>
+    <div class="free-list">${rows.map(r=>`<div class="free-row"><p class="free-q">${r.k+1}. ${esc(r.it.q)}</p><p class="${r.a?'':'muted'}">${r.a?esc(r.a):'— без ответа —'}</p></div>`).join('')}</div>
+    <div class="row"><button class="btn" data-fcopy="1">Скопировать ответы</button><button class="btn ghost" data-freset="1">Начать заново</button></div>
+    <p class="muted copied" id="copied" aria-live="polite">${q.copied?'Скопировано.':''}</p></section>`;
+  }
+  const idx=q.order[q.i],it=FREE[idx],val=q.ans[idx]||'';
+  let h=`<section class="card"><div class="meta"><span>Ответь по-английски${it.l>1?' '+lvlTag(it.l):''}</span><span>${q.i+1} из ${n}</span></div><div class="bar"><i style="width:${(q.i+(q.checked?1:0))/n*100}%"></i></div>
+  <p class="sent free-big" lang="en">${esc(it.q)}</p><p class="ctx">${esc(it.ru)}</p>
+  <textarea id="free" lang="en" rows="3" placeholder="Пиши полным предложением" aria-label="Твой ответ" autocapitalize="sentences" spellcheck="false">${esc(val)}</textarea>
+  ${q.tip?`<p class="note free-tip">${esc(it.tip)}</p>`:''}
+  <div class="row"><button class="btn" data-fcheck="1">Проверить</button>${q.tip?'':'<button class="btn ghost" data-ftip="1">Подсказка по форме</button>'}${q.checked?'':'<button class="btn ghost" data-fnext="1">Пропустить</button>'}</div>`;
+  if(q.checked){
+    const L=q.lint;
+    h+=L.length?`<div class="fb bad"><b class="bad">Проверь:</b><ul class="lint">${L.map(m=>`<li>${esc(m)}</li>`).join('')}</ul><span class="hint">Это подсказки, а не приговор: тренажёр мог ошибиться. Можешь исправить и проверить ещё раз.</span></div>`
+              :`<div class="fb ok"><b class="ok">Типичных ошибок не видно.</b> Сверь с образцом: те же ли формы у тебя?</div>`;
+    h+=`<p class="muted" style="margin-top:14px">Как можно ответить:</p><div class="exs">${it.m.map(say).join('')}</div>
+    <div class="row"><button class="btn" data-fnext="1">Дальше</button></div>`;
+  }
+  return h+`<p class="note">Тренажёр ловит только типичные ошибки формы: will после if, would в части с if и т.п. Смысл и остальную грамматику он не проверяет.</p></section>`;
+}
+function freshFree(old){return {order:pool(FREE),i:0,checked:false,lint:[],tip:false,copied:false,ans:old?old.ans:{}};}
+function checkFree(){
+  const q=S.free,idx=q.order[q.i],v=(q.ans[idx]||'').trim();
+  if(!v){q.checked=false;q.lint=[];FOCUS='#free';render();return;}
+  q.lint=lintFree(FREE[idx],v);q.checked=true;FOCUS='none';render();
+}
+function nextFree(){const q=S.free;q.i++;q.checked=false;q.lint=[];q.tip=false;FOCUS=q.i>=q.order.length?'.row .btn':'#free';markDone();render();}
+function copyFree(){
+  const q=S.free,txt='if only — свободные ответы\n\n'+q.order.map((idx,k)=>`${k+1}. ${FREE[idx].q}\n${(q.ans[idx]||'—').trim()}`).join('\n\n');
+  const ok=()=>{q.copied=true;const el=$('#copied');if(el)el.textContent='Скопировано.';};
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){}ta.remove();};
+  try{navigator.clipboard.writeText(txt).then(ok,fallback);}catch(e){fallback();}
+}
+
+function trHTML(){
+  const q=S.tr;if(q.i>=q.order.length)return endHTML(q,'tr',7);
+  const it=cur('tr');if(!q.tiles){q.tiles=tilesFor(it);q.ans=[];}
+  let h=`<section class="card">${qHead(q,'Переведи: собери из плиток',it.l>1?it.l:0)}<p class="ru-src">${esc(it.ru)}</p>${it.ctx?`<p class="ctx">${esc(it.ctx)}</p>`:''}`;
+  if(q.solved){
+    const sent=q.flip||it.s[q.pick],note=q.flip?' Тоже верно: главная часть может идти первой — тогда запятая не нужна.':((!q.revealed&&it.n&&it.n[q.pick])?' '+it.n[q.pick]:'');
+    h+=`<div class="ansline solved" lang="en">${esc(sent)}</div>`;
+    h+=q.revealed?`<div class="fb bad"><b class="bad">Правильно так:</b> <span class="full">${esc(sent)}</span>${it.why}<br>${speakBtn(sent)}</div>`
+                 :`<div class="fb ok"><b class="ok">Верно.</b> ${it.why}${note}<br>${speakBtn(sent)}</div>`;
+    h+=`<div class="row"><button class="btn" data-next="tr">Дальше</button></div>`;
+  } else {
+    const poolIdx=q.tiles.map((_,i)=>i).filter(i=>!q.ans.includes(i));
+    h+=`<div class="ansline" aria-label="Твой ответ">${q.ans.length?q.ans.map((i,k)=>`<button class="chip" data-tout="${i}" aria-label="Убрать ${esc(tl(q.tiles[i]))}" lang="en">${esc(k===0?cap(tl(q.tiles[i])):tl(q.tiles[i]))}</button>`).join(''):'<span class="ph">Нажимай на плитки по порядку. Запятые не нужны.</span>'}</div>
+    <div class="chips pool">${poolIdx.map(i=>`<button class="chip" data-tin="${i}" lang="en">${esc(tl(q.tiles[i]))}</button>`).join('')}</div>
+    <div class="row"><button class="btn" data-trcheck="1">Проверить</button><button class="btn ghost" data-trclear="1">Сбросить</button></div>`;
+    if(q.msg)h+=`<div class="fb bad">${q.msg}</div>`;
+  }
+  return h+'</section>';
+}
+
+/* actions */
+function render(){
+  renderNav();
+  $('#stage').innerHTML=[learnHTML,sortHTML,nowHTML,choiceHTML,typeHTML,errHTML,trHTML,freeHTML][S.tab]();
+  const fa=$('#free');
+  if(fa){fa.addEventListener('input',()=>{S.free.ans[S.free.order[S.free.i]]=fa.value;save();});if(FOCUS==='#free'){fa.focus({preventScroll:true});FOCUS=null;}}
+  const inp=$('#ans');
+  if(inp){
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkType(inp.value);}});
+    if(FOCUS&&FOCUS!=='none'&&inp.matches(FOCUS)){inp.focus({preventScroll:true});if(S.type.msg&&inp.value)inp.select();}
+    else if(FOCUS&&FOCUS!=='none'){const el=$(FOCUS);if(el)el.focus({preventScroll:true});}
+  } else if(FOCUS&&FOCUS!=='none'){
+    const el=$(FOCUS);if(el){el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',behavior:reduceMotion()?'auto':'smooth'});}
+  }
+  FOCUS=null;
+  if(SHAKE!==null){const el=$(`[data-tok="${SHAKE}"]`);if(el)el.classList.add('nope');SHAKE=null;}
+  const fb=$('#stage .fb'),txt=fb?fb.textContent.replace('Послушать','').trim():'';
+  if(txt!==LIVE){LIVE=txt;$('#live').textContent=txt;}
+  save();
+}
+function markDone(){for(const k in TABKEY){if(S[k].i>=S[k].order.length)S.done[TABKEY[k]]=true;}if(S.free.i>=S.free.order.length)S.done[7]=true;}
+function go(i){if(S.tab===0)S.done[0]=true;S.tab=i;LIVE='';render();window.scrollTo({top:0,behavior:reduceMotion()?'auto':'smooth'});}
+
+function pickBucket(k){
+  const q=S.sort,it=cur('sort');
+  if(k===it.a){q.solved=k;if(!q.wrong.length)credit(q);FOCUS=NEXT_FOCUS;}
+  else{q.wrong.push(k);FOCUS='.bucket:not([disabled])';}
+  render();
+}
+function chooseNow(i){
+  const q=S.now,it=cur('now');
+  if(it.o[i][1]===it.a){q.solved=true;if(!q.wrong.length)credit(q);FOCUS=NEXT_FOCUS;}
+  else{q.wrong.push(i);FOCUS='.nopt:not([disabled])';}
+  render();
+}
+function chooseOpt(i){
+  const q=S.choice,it=cur('choice'),o=q.opts[i];
+  if(o===it.a){q.solved=true;if(!q.wrong.length)credit(q);FOCUS=NEXT_FOCUS;}
+  else{q.wrong.push(o);FOCUS='.opt:not([disabled])';}
+  render();
+}
+/* разбор конкретной ошибки во «Вписать» */
+const DM={
+  willIf:"После if, when, as soon as и unless will не ставим — даже если по-русски будущее.",
+  willWish:"После wish и if only will не ставим: нужен шаг назад во времени.",
+  willMain:"Это воображаемое — will не подходит, нужно would.",
+  wouldIf:"Would в части с if не ставим — он бывает только в главной части.",
+  wouldWish:"Wish + would — только о чужом поведении. О себе — шаг назад: past simple или had + V3.",
+  needHave:"Результат здесь в прошлом: would have + V3.",
+  noHave:"Результат здесь про сейчас: would + V, без have.",
+  needWould:"В главной части воображаемого нужно would.",
+  needPP:"Это про прошлое. Past simple здесь значил бы воображаемое сейчас — нужен ещё шаг назад: had + V3.",
+  backPast:"Воображаемое сейчас — шаг назад во времени: present → past simple.",
+  wishBack:"После wish — шаг назад: present → past simple.",
+  ppTooFar:"Had + V3 — это уже про прошлое. А здесь воображаемое сейчас: хватит past simple.",
+  realPres:"Это реальная ситуация, не воображаемая, — нужен present.",
+  neg:"В скобках есть not — не забудь отрицание.",
+  unless:"Unless уже значит «если не» — второе отрицание не нужно.",
+  invIf:"Здесь без if: инверсия начинается сразу с глагола.",
+  invWas:"В инверсии только were: Were I in your position.",
+  thirdS:"The band — это he/she/it: нужно окончание -s."
+};
+function diagType(it,raw){
+  const t=norm(raw),w=t.split(' '),has=re=>re.test(t);
+  const base=it.v.replace(/^not \/ /,''),neg=/^not \//.test(it.v),exp=norm(it.acc[0]);
+  const isNeg=has(/n't\b|\bnot\b/);
+  if(/^unless/i.test(it.s)&&isNeg)return DM.unless;
+  if(neg&&!isNeg)return DM.neg;
+  if(it.g==='inv'){if(has(/^if\b/))return DM.invIf;if(t==='was')return DM.invWas;}
+  if(exp===base+'s'&&t===base)return DM.thirdS;
+  let ki;
+  if(has(/\b(will|won't)\b|'ll\b/))ki='will';
+  else if(has(/\b(would|wouldn't)\b|would've|'d have|'d've/))ki=has(/\bhave\b|'ve\b/)?'whv':'wv';
+  else if(has(/^(had|hadn't)\b|^'d\b/))ki='pp';
+  else{const last=w[w.length-1];ki=(last===base||last===base+'s'||last===base+'es'||/^(do|does|don't|doesn't|am|is|are|isn't|aren't)$/.test(w[0]))?'pres':'past';}
+  if(ki==='will')return it.g==='main'?DM.willMain:it.g==='wish'?DM.willWish:DM.willIf;
+  if((ki==='wv'||ki==='whv')&&it.g!=='main')return it.g==='wish'?DM.wouldWish:DM.wouldIf;
+  if(it.g==='main'){
+    if(it.k==='whv'&&ki==='wv')return DM.needHave;
+    if(it.k==='wv'&&ki==='whv')return DM.noHave;
+    if(ki!=='wv'&&ki!=='whv')return DM.needWould;
+  }
+  if(it.k==='pp'&&(ki==='past'||ki==='pres'))return DM.needPP;
+  if(it.k==='past'&&ki==='pres')return it.g==='wish'?DM.wishBack:DM.backPast;
+  if(it.k==='past'&&ki==='pp')return DM.ppTooFar;
+  if(it.k==='pres'&&(ki==='past'||ki==='pp'))return DM.realPres;
+  if(ki===it.k)return (it.k==='pp'||it.k==='whv')?`Конструкция верная — проверь третью форму глагола ${base}.`:'Конструкция верная — проверь форму самого глагола.';
+  return null;
+}
+/* разбор конкретной ошибки в «Перевести» */
+const nWords=n=>n%10===1&&n%100!==11?'слова':'слов';
+function diagTr(it,got){
+  const cnt=a=>a.reduce((m,w)=>(m[w]=(m[w]||0)+1,m),{});
+  const G=cnt(got);let best=null;
+  it.a.forEach(ans=>{const A=cnt(ans),extra=[],miss=[];
+    for(const w in G)for(let k=(A[w]||0);k<G[w];k++)extra.push(w);
+    for(const w in A)for(let k=(G[w]||0);k<A[w];k++)miss.push(w);
+    const sc=extra.length+miss.length;if(!best||sc<best.sc)best={sc,extra,miss,ans};});
+  const xn=it.xn||{};
+  for(const w of best.extra)if(xn[w])return xn[w];
+  if(!best.sc){let i=0;while(got[i]===best.ans[i])i++;
+    return i>0?`Все слова верные, но порядок другой. Начало «${esc(join(got.slice(0,i)))}» — правильно, дальше проверь.`:'Все слова верные, но порядок другой. Проверь, с чего начинается фраза.';}
+  if(!best.extra.length)return `Фраза не закончена: не хватает ещё ${best.miss.length} ${nWords(best.miss.length)}.`;
+  return null;
+}
+const withHint=(d,h)=>d?`${d}<span class="hint">Подсказка: ${h}</span>`:h;
+function checkType(raw){
+  const q=S.type,it=cur('type');q.typed=raw;const v=norm(raw);
+  if(!v){q.msg='Впиши форму глагола.';FOCUS='#ans';LIVE='';render();return;}
+  if(it.acc.map(norm).includes(v)){q.solved=raw.trim();q.msg=null;if(q.tries===0)credit(q);FOCUS=NEXT_FOCUS;render();return;}
+  q.tries++;
+  if(q.tries>=2){q.solved=it.acc[0];q.revealed=true;q.msg=null;FOCUS=NEXT_FOCUS;}
+  else{q.msg=withHint(diagType(it,raw),it.h);FOCUS='#ans';LIVE='';}
+  render();
+}
+function tapTok(i){
+  const q=S.err,it=cur('err'),[a,b]=it.e;
+  if(i>=a&&i<=b){q.open=true;q.msg=null;q.opts=shuffle([it.fix,...it.o]);FOCUS='[data-fix]';}
+  else{q.misses++;q.msg='Это слово на месте. Ищи глагол или связку, где ошибка.';SHAKE=i;FOCUS=`[data-tok="${i}"]`;LIVE='';}
+  render();
+}
+function fixErr(i){
+  const q=S.err,it=cur('err');
+  if(q.opts[i]===it.fix){q.solved=true;if(!q.misses&&!q.hinted&&!q.wrongOpts.length)credit(q);FOCUS=NEXT_FOCUS;}
+  else{q.wrongOpts.push(i);if(q.wrongOpts.length>=2){q.solved=true;q.revealed=true;FOCUS=NEXT_FOCUS;}else FOCUS='[data-fix]:not([disabled])';}
+  render();
+}
+function checkTr(){
+  const q=S.tr,it=cur('tr'),got=q.ans.map(i=>q.tiles[i]).join(' ');
+  if(!got){q.msg='Собери фразу из плиток.';FOCUS='.pool .chip';LIVE='';render();return;}
+  let k=it.a.findIndex(v=>v.join(' ')===got);q.flip=null;
+  /* главная часть первой — тоже верно (I'll text you when I get…) */
+  if(k<0){const lc=a=>a.join(' ').toLowerCase(),g=q.ans.map(i=>q.tiles[i]);
+    k=it.a.findIndex((v,j)=>{if(!/^(If|Unless|When)$/.test(v[0]))return false;const n=it.s[j].split(',')[0].split(' ').length;return lc([...v.slice(n),...v.slice(0,n)])===lc(g);});
+    if(k>=0){const t=g.map((w,i)=>i===0?w[0].toUpperCase()+w.slice(1):(/^(If|Unless|When)$/.test(w)?w.toLowerCase():w));q.flip=t.join(' ')+'.';}}
+  if(k>=0){q.solved=true;q.pick=k;q.msg=null;if(q.tries===0)credit(q);FOCUS=NEXT_FOCUS;render();return;}
+  q.tries++;
+  if(q.tries>=2){q.solved=true;q.pick=0;q.revealed=true;q.msg=null;FOCUS=NEXT_FOCUS;}
+  else{q.msg=`<b class="bad">Не совсем.</b> ${withHint(diagTr(it,q.ans.map(i=>q.tiles[i])),it.h)}`;FOCUS='[data-trcheck]';LIVE='';}
+  render();
+}
+function nextQ(key){
+  const q=S[key];
+  if(!q.ok){
+    const v=q.order[q.i],idx=idxOf(v);
+    if(!q.missed.includes(idx))q.missed.push(idx);
+    /* ошибка в первом показе — задание вернётся через 3–5 других */
+    if(v>=0){const gap=3+Math.floor(Math.random()*3);q.order.splice(Math.min(q.i+1+gap,q.order.length),0,-(idx+1));}
+  }
+  q.i++;
+  Object.assign(q,{ok:false,wrong:[],solved:false,revealed:false,tries:0,msg:null,typed:'',opts:null,open:false,wrongOpts:[],misses:0,hinted:false,tiles:null,ans:[],pick:0,flip:null});
+  FOCUS={sort:'.bucket',now:'.nopt',choice:'.opt',type:'#ans',err:'[data-tok]',tr:'.pool .chip'}[key];
+  if(q.i>=q.order.length)FOCUS='.row .btn';
+  markDone();render();
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.tab!==undefined){FOCUS=`[data-tab="${+d.tab}"]`;go(+d.tab);}
+  else if(d.go!==undefined){FOCUS='#stage button';go(+d.go);}
+  else if(d.say!==undefined)speak(d.say);
+  else if(d.bucket!==undefined)pickBucket(d.bucket);
+  else if(d.opt!==undefined)chooseOpt(+d.opt);
+  else if(d.nopt!==undefined)chooseNow(+d.nopt);
+  else if(d.check!==undefined)checkType(($('#ans')||{}).value||'');
+  else if(d.next!==undefined)nextQ(d.next);
+  else if(d.tok!==undefined)tapTok(+d.tok);
+  else if(d.fix!==undefined)fixErr(+d.fix);
+  else if(d.hint!==undefined){S.err.hinted=true;S.err.msg='Ошибка в словах, обведённых пунктиром.';FOCUS='.tok.hl';render();}
+  else if(d.tin!==undefined){S.tr.ans.push(+d.tin);S.tr.msg=null;FOCUS='.pool .chip, [data-trcheck]';render();}
+  else if(d.tout!==undefined){S.tr.ans=S.tr.ans.filter(i=>i!==+d.tout);S.tr.msg=null;FOCUS='.ansline .chip, .pool .chip';render();}
+  else if(d.trclear!==undefined){S.tr.ans=[];S.tr.msg=null;FOCUS='.pool .chip';render();}
+  else if(d.trcheck!==undefined)checkTr();
+  else if(d.fcheck!==undefined)checkFree();
+  else if(d.fnext!==undefined)nextFree();
+  else if(d.ftip!==undefined){S.free.tip=true;FOCUS='#free';render();}
+  else if(d.fcopy!==undefined)copyFree();
+  else if(d.wipe!==undefined){if(confirm('Сбросить прогресс во всех упражнениях и свободные ответы?')){try{localStorage.removeItem(SAVE_KEY);}catch(e){}resetAll();LIVE='';render();window.scrollTo(0,0);}}
+  else if(d.freset!==undefined){S.free=freshFree();S.done[7]=false;FOCUS='#free';render();}
+  else if(d.retry!==undefined){const k=d.retry;S[k]=freshQ(k,S[k].missed.slice());S.done[TABKEY[k]]=false;FOCUS='#stage .bucket, #stage .opt, #stage [data-tok], #stage .chip, #stage input';LIVE='';render();window.scrollTo({top:0,behavior:reduceMotion()?'auto':'smooth'});}
+  else if(d.reset!==undefined){const k=d.reset;S[k]=freshQ(k);S.done[TABKEY[k]]=false;FOCUS='#stage .bucket, #stage .opt, #stage [data-tok], #stage .chip';LIVE='';render();}
+});
+
+/* сохранение в браузере ученика. Поменяй версию в ключе, если меняешь состав заданий */
+const SAVE_KEY='ifonly-conditionals-v1';
+const SIG=JSON.stringify([STAGES.length,SORT.length,NOW.length,CHOICE.length,TYPE.length,ERR.length,TR.length,FREE.length]);
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({sig:SIG,S}));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.sig===SIG&&d.S&&d.S.free&&Array.isArray(d.S.done)){S=d.S;S.free.copied=false;}}catch(e){}}
+resetAll();load();render();
+</script>
+</body>
+</html>
